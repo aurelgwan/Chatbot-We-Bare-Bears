@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot We Bare Bears</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Floating background blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="chat-wrapper">
+
+    <!-- Sidebar Bear Icons -->
+    <div class="bear-sidebar">
+      <div class="bear-avatar grizzly" title="Grizz">🐻</div>
+      <div class="bear-avatar panda" title="Panda">🐼</div>
+      <div class="bear-avatar ice" title="Ice Bear">🐻‍❄️</div>
+      <div class="bear-status">
+        <span class="status-dot"></span>
+        <span>Online</span>
+      </div>
+    </div>
+
+    <div class="chat-container">
+
+      <!-- Header -->
+      <div class="chat-header">
+        <div class="header-bears">
+          <span class="h-bear">🐻</span>
+          <span class="h-bear delay-1">🐼</span>
+          <span class="h-bear delay-2">🐻‍❄️</span>
+        </div>
+        <div class="header-text">
+          <h2>We Bare Bears</h2>
+          <p class="subtitle">Tanyakan apa saja pada kami!</p>
+        </div>
+        <div class="header-badge">RAG</div>
+      </div>
+
+      <!-- Messages -->
+      <div id="chat-box">
+        <!-- Welcome message -->
+        <div class="bot-row">
+          <div class="avatar-bubble">🐻</div>
+          <div class="bot">
+            <div class="bubble-tail"></div>
+            Heyy! Grizz di sini! 🎉 Aku, Panda, dan Ice Bear siap bantu kamu. Tanyakan apa saja!
+          </div>
+        </div>
+      </div>
+
+      <!-- Typing indicator (hidden by default) -->
+      <div id="typing-indicator" class="bot-row" style="display:none; padding: 0 16px 8px;">
+        <div class="avatar-bubble">🐼</div>
+        <div class="typing-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="input-area">
+        <div class="input-wrap">
+          <input type="text" id="user-input" placeholder="Tanyakan sesuatu..." autocomplete="off" onkeydown="if(event.key==='Enter')sendMessage()">
+          <button onclick="sendMessage()" id="send-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+        <div class="input-hint">Tekan Enter atau klik kirim ✨</div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  const avatars = ["🐻", "🐼", "🐻‍❄️"];
+  let avatarIndex = 0;
+
+  async function sendMessage() {
+    const input = document.getElementById("user-input");
+    const message = input.value.trim();
+    if (!message) {
+      input.classList.add("shake");
+      setTimeout(() => input.classList.remove("shake"), 400);
+      return;
+    }
+
+    addMessage("You", message);
+    input.value = "";
+
+    // Show typing indicator
+    const typing = document.getElementById("typing-indicator");
+    typing.style.display = "flex";
+    scrollToBottom();
+
+    try {
+      const response = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
+      const data = await response.json();
+      typing.style.display = "none";
+      addMessage("Bot", data.reply);
+    } catch (e) {
+      typing.style.display = "none";
+      addMessage("Bot", "Waduh, ada masalah koneksi! Coba lagi ya 🐾");
+    }
+  }
+
+  function addMessage(sender, text) {
+    const chatBox = document.getElementById("chat-box");
+
+    if (sender === "You") {
+      const row = document.createElement("div");
+      row.className = "user-row";
+      const bubble = document.createElement("div");
+      bubble.className = "user";
+      bubble.innerText = text;
+      row.appendChild(bubble);
+      chatBox.appendChild(row);
+    } else {
+      const row = document.createElement("div");
+      row.className = "bot-row";
+      const av = document.createElement("div");
+      av.className = "avatar-bubble";
+      av.innerText = avatars[avatarIndex % 3];
+      avatarIndex++;
+      const bubble = document.createElement("div");
+      bubble.className = "bot";
+      bubble.innerText = text;
+      row.appendChild(av);
+      row.appendChild(bubble);
+      chatBox.appendChild(row);
+    }
+
+    scrollToBottom();
+  }
+
+  function scrollToBottom() {
+    const chatBox = document.getElementById("chat-box");
+    chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: "smooth" });
+  }
+</script>
+
+</body>
+</html>
